@@ -1,0 +1,19 @@
+	many_gemms.sh: This script compiles, runs, and exports timing info
+	               for many gemm kernels run on the snitch cluster.
+	many_gemms.sh: Always run this script from inside the myrtle-experiments
+	               directory (/repo/myrtle-experiments/ inside the docker image)
+	many_gemms.sh: Invoke this script with 'bash many_gemms.sh <searchSpace.csv>'
+	many_gemms.sh: Mon Jun 22 08:42:43 UTC 2026
+	               Remember to set your environment variables correctly...
+	               gemmDir is /repo/sw/kernels/blas/gemm_boundary
+	               experimentDir is /repo/testrun
+	               TIMEOUT is 0
+	               beta is 0
+	               spm_opt is 1
+	many_gemms.sh: CHECK step
+		16x16x16w8-16-16... No csv with time measurements.
+		output.txt does not exist.
+	many_gemms.sh: RUN + EXPORT step
+		Batch size is 4
+		 About to run 16 16 16 8 16 16 with build directory /repo/testrun/16x16x16w8-16-16/build
+	many_gemms.sh: DONE

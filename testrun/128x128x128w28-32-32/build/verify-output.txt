@@ -1,0 +1,22 @@
+[IPC] Thread launched with TX FIFO `/tmp/tmpfbnx7c2h/tx`, RX FIFO `/tmp/tmpfbnx7c2h/rx`
+[Tracer] Logging Hart          8 to logs/trace_hart_00008.dasm
+[iDMA Tracer] Logging gen_backend[c].i_idma_backend_rw_axi to dma_trace_00008_00000.log
+[Tracer] Logging Hart          0 to logs/trace_hart_00000.dasm
+[Tracer] Logging Hart          1 to logs/trace_hart_00001.dasm
+[Tracer] Logging Hart          2 to logs/trace_hart_00002.dasm
+[Tracer] Logging Hart          3 to logs/trace_hart_00003.dasm
+[Tracer] Logging Hart          4 to logs/trace_hart_00004.dasm
+[Tracer] Logging Hart          5 to logs/trace_hart_00005.dasm
+[Tracer] Logging Hart          6 to logs/trace_hart_00006.dasm
+[Tracer] Logging Hart          7 to logs/trace_hart_00007.dasm
+[IPC] Poll on 0x80009700 mask 0x1 expected 0x0 ...
+[NarrowAxi] Writing entry point 80000000 to scratch1
+[NarrowAxi] Setting Cluster Clint interrupt
+[IPC] Read from 0x80049878 len 0x20000 ...
+[IPC] All messages read. Closing FIFOs and joining main thread.
+[IPC] Thread joined
+[Verifier] Myrtle Timeout Value is 0
+[ 4.86552066  7.34996678 -0.29674969 ... -4.51478092 -1.47680447
+  0.25284834]
+[ 4.86552066  7.34996678 -0.29674969 ... -4.51478092 -1.47680447
+  0.25284834]

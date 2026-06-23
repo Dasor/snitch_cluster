@@ -1,0 +1,27 @@
+	many_gemms.sh: This script compiles, runs, and exports timing info
+	               for many gemm kernels run on the snitch cluster.
+	many_gemms.sh: Always run this script from inside the myrtle-experiments
+	               directory (/repo/myrtle-experiments/ inside the docker image)
+	many_gemms.sh: Invoke this script with 'bash many_gemms.sh <searchSpace.csv>'
+	many_gemms.sh: Mon Jun 22 08:42:40 UTC 2026
+	               Remember to set your environment variables correctly...
+	               gemmDir is /repo/sw/kernels/blas/gemm_boundary
+	               experimentDir is /repo/testrun
+	               TIMEOUT is 0
+	               beta is 0
+	               spm_opt is 1
+	many_gemms.sh: COMPILE step
+		16 16 16 8 16 16 with build directory /repo/testrun/16x16x16w8-16-16
+
+	prepareParams.py: ATTN: only many_gemms.sh should call this script.
+	prepareParams.py: beta is 0
+	prepareParams.py: spm_opt is 1
+	prepareParams.py: we are working with /repo/sw/kernels/blas/gemm_boundary/data/params.json 16x16x16 with num tiles 2 1 1
+/repo/sw/kernels/blas/gemm_boundary/scripts/datagen.py -c /repo/sw/kernels/blas/gemm_boundary/data/params.json --section="" /repo/sw/kernels/blas/gemm_boundary/build/data.h
+a_size = 1024.0 = 8.0 x 16.0 x 8
+b_size = 2048.0 = 16.0 x 16.0 x 8
+c_size = 1024.0 = 8.0 x 16.0 x 8
+Total heap space required 4.0 KiB
+/tools/riscv-llvm/bin/clang++ -mcpu=snitch -menable-experimental-extensions -mabi=ilp32d -mcmodel=medany -mno-fdiv -fno-builtin-printf -fno-builtin-sqrtf -fno-common -fopenmp -ftls-model=local-exec -O3 -Werror -g -I/repo/sw/kernels/blas -I/repo/sw/kernels/blas/gemm_boundary/build/ -I/repo/sw/kernels/blas/gemm_boundary/src -I/repo/sw/runtime/src -I/repo/sw/runtime/api -I/repo/sw/runtime/src/omp -I/repo/sw/runtime/api/omp -I/repo/sw/runtime/vendor/riscv-opcodes -I/repo/sw/runtime/impl -I/repo/sw/deps/riscv-opcodes -fuse-ld=/tools/riscv-llvm/bin/ld.lld -nostartfiles -nostdlib++ -lm -L/repo/sw/runtime/impl/ -T/repo/sw/runtime/base.ld -L/repo/sw/runtime/build/ -lsnRuntime -x c++ /repo/sw/kernels/blas/gemm_boundary/src/main.c -o /repo/sw/kernels/blas/gemm_boundary/build/gemm_boundary.elf
+/tools/riscv-llvm/bin/llvm-objdump --mcpu=snitch -D /repo/sw/kernels/blas/gemm_boundary/build/gemm_boundary.elf > /repo/sw/kernels/blas/gemm_boundary/build/gemm_boundary.dump
+	many_gemms.sh: DONE
