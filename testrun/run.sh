@@ -4,7 +4,7 @@
 export gemmDir="/repo/sw/kernels/blas/gemm_boundary"
 export experimentDir=$(pwd)
 export beta=0;
-export spm_opt=1;
+export spm_opt=0;
 export TIMEOUT=0;
 
 cd ..

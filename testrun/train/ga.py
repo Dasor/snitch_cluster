@@ -21,6 +21,7 @@ columns), ready to feed directly into the compile + simulate step.
 
 import argparse
 import os
+import re
 import random
 import sys
 
@@ -185,6 +186,23 @@ def _crossover(
 # Main GA driver
 # ---------------------------------------------------------------------------
 
+_NAME_RE = re.compile(r'\d+x\d+x\d+w(\d+)-(\d+)-(\d+)')
+
+
+def _load_blocklist(path: str | None) -> set:
+    """Return a set of (m, n, k) tuples parsed from a blocklist file."""
+    blocked: set = set()
+    if not path or not os.path.exists(path):
+        return blocked
+    with open(path) as f:
+        for line in f:
+            m = _NAME_RE.match(line.strip())
+            if m:
+                blocked.add((int(m.group(1)), int(m.group(2)), int(m.group(3))))
+    print(f"Blocklist: {len(blocked)} timed-out config(s) will be excluded from candidates")
+    return blocked
+
+
 def run(
     M: int, N: int, K: int,
     model_path: str,
@@ -198,8 +216,10 @@ def run(
     sigma: float,
     boundary: bool,
     rng_seed: int | None,
+    blocklist_path: str | None = None,
 ) -> None:
     rng = random.Random(rng_seed)
+    blocked = _load_blocklist(blocklist_path)
 
     model = xgb.Booster()
     model.load_model(model_path)
@@ -214,7 +234,9 @@ def run(
     if seed_csv:
         df_seed = pd.read_csv(seed_csv)
         for _, row in df_seed.iterrows():
-            pop.append(creator.Individual([int(row["m"]), int(row["n"]), int(row["k"])]))
+            key = (int(row["m"]), int(row["n"]), int(row["k"]))
+            if key not in blocked:
+                pop.append(creator.Individual(list(key)))
         print(f"Seeded {len(pop)} individuals from {seed_csv}")
 
     # Top up with random valid configs if population is smaller than pop_size
@@ -272,7 +294,11 @@ def run(
                   f"evaluated={len(score_cache)}")
 
     # --- Select top-N unique configs across all evaluated (not just final pop) ---
-    top = sorted(score_cache.items(), key=lambda x: -x[1])[:top_n]
+    # Exclude timed-out configs from the blocklist.
+    top = sorted(
+        [(k, v) for k, v in score_cache.items() if k not in blocked],
+        key=lambda x: -x[1],
+    )[:top_n]
 
     print(f"\nTop {top_n} candidates (predicted normalized throughput):")
     for i, ((m, n, k), score) in enumerate(top, 1):
@@ -326,6 +352,9 @@ def main() -> None:
                    help="allow boundary/remainder-tile configurations (requires gemm_boundary)")
     p.add_argument("--seed", type=int, default=None,
                    help="random seed for reproducibility")
+    p.add_argument("--blocklist", default=None, metavar="PATH",
+                   help="text file of timed-out config names (one per line) to exclude "
+                        "from candidates; accumulated across iterations by run_loop.sh")
     args = p.parse_args()
 
     run(
@@ -341,6 +370,7 @@ def main() -> None:
         sigma=args.sigma,
         boundary=args.allow_boundary,
         rng_seed=args.seed,
+        blocklist_path=args.blocklist,
     )
 
 

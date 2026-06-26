@@ -1,25 +1,6 @@
 	run_and_extract_time.sh: Arguments passed in are /repo/testrun/16x16x16w8-16-16/build /repo/myrtle-experiments/extractDataFromJsons2.py 16x16x16w8-16-16 /repo/testrun/16x16x16w8-16-16/build/logs 16 16 16 8 16 16
-Started Process A (PID: 518383)
+Started Process A (PID: 2018721)
 error or timeout while running simulation
-logsDir is logs and log file is trace_hart_00000 and dma is 
-logsDir is logs and log file is trace_hart_00001 and dma is 
-logsDir is logs and log file is trace_hart_00002 and dma is 
-logsDir is logs and log file is trace_hart_00003 and dma is 
-logsDir is logs and log file is trace_hart_00004 and dma is 
-logsDir is logs and log file is trace_hart_00005 and dma is 
-logsDir is logs and log file is trace_hart_00006 and dma is 
-logsDir is logs and log file is trace_hart_00007 and dma is 
-logsDir is logs and log file is trace_hart_00008 and dma is dma
 
 		extractDataFromJsons.py: ATTN: only many_gemms.sh should call this script.
-		max e2e dma vs cc diff time is 23: [np.int64(23), np.int64(11), np.int64(10), np.int64(9), np.int64(6), np.int64(5), np.int64(4), np.int64(3)]
 	run_and_extract_time.sh: Successfully exported timing information. Deleting logs...
--rw-r--r--. 1 root root 789K Jun 22 08:42 trace_hart_00000.dasm
--rw-r--r--. 1 root root 779K Jun 22 08:42 trace_hart_00001.dasm
--rw-r--r--. 1 root root 780K Jun 22 08:42 trace_hart_00002.dasm
--rw-r--r--. 1 root root 779K Jun 22 08:42 trace_hart_00003.dasm
--rw-r--r--. 1 root root 780K Jun 22 08:42 trace_hart_00004.dasm
--rw-r--r--. 1 root root 778K Jun 22 08:42 trace_hart_00005.dasm
--rw-r--r--. 1 root root 779K Jun 22 08:42 trace_hart_00006.dasm
--rw-r--r--. 1 root root 777K Jun 22 08:42 trace_hart_00007.dasm
--rw-r--r--. 1 root root 1.4M Jun 22 08:42 trace_hart_00008.dasm

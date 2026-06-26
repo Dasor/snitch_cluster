@@ -1,4 +1,4 @@
-[IPC] Thread launched with TX FIFO `/tmp/tmpf330bty5/tx`, RX FIFO `/tmp/tmpf330bty5/rx`
+[IPC] Thread launched with TX FIFO `/tmp/tmpjjswmlm9/tx`, RX FIFO `/tmp/tmpjjswmlm9/rx`
 [Tracer] Logging Hart          8 to logs/trace_hart_00008.dasm
 [iDMA Tracer] Logging gen_backend[c].i_idma_backend_rw_axi to dma_trace_00008_00000.log
 [Tracer] Logging Hart          0 to logs/trace_hart_00000.dasm

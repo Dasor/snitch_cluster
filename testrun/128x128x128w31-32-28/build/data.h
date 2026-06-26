@@ -11,9 +11,9 @@ extern double c[16384];
 
 extern const uint32_t prec = 8;
 
-extern const uint32_t m = 155;
+extern const uint32_t m = 128;
 
-extern const uint32_t n = 128;
+extern const uint32_t n = 144;
 
 extern const uint32_t k = 140;
 
@@ -31,8 +31,8 @@ extern const gemm_args_t args = {
 	.setup_ssr = 1,
 	.parallelize_m = 1,
 	.parallelize_k = 0,
-	.m_tiles = 5,
-	.n_tiles = 4,
+	.m_tiles = 4,
+	.n_tiles = 6,
 	.k_tiles = 5,
 	.load_a = 1,
 	.load_b = 1,

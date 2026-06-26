@@ -64,7 +64,9 @@ def build_dataset(features_path: str, results_path: str):
     feats_raw = pd.read_csv(features_path)
     results = pd.read_csv(results_path)[[JOIN_KEY, TARGET_COL]].copy()
 
-    # Discard timeouts (marked as -1)
+    print(f"Cycles range: {results[TARGET_COL].min():.0f} – {results[TARGET_COL].max():.0f} ")
+
+    # Discard timeouts (marked as -1); the GA blocklist handles avoidance instead.
     results = results[results[TARGET_COL] > 0]
 
     merged = feats_raw.merge(results, on=JOIN_KEY, how="inner")

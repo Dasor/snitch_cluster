@@ -1,25 +1,21 @@
 	run_and_extract_time.sh: Arguments passed in are /repo/testrun/128x128x128w31-32-28/build /repo/myrtle-experiments/extractDataFromJsons2.py 128x128x128w31-32-28 /repo/testrun/128x128x128w31-32-28/build/logs 128 128 128 31 32 28
-Started Process A (PID: 400856)
-ran simulation correctly
-logsDir is logs and log file is trace_hart_00000 and dma is 
-logsDir is logs and log file is trace_hart_00001 and dma is 
-logsDir is logs and log file is trace_hart_00002 and dma is 
-logsDir is logs and log file is trace_hart_00003 and dma is 
-logsDir is logs and log file is trace_hart_00004 and dma is 
-logsDir is logs and log file is trace_hart_00005 and dma is 
-logsDir is logs and log file is trace_hart_00006 and dma is 
-logsDir is logs and log file is trace_hart_00007 and dma is 
-logsDir is logs and log file is trace_hart_00008 and dma is dma
+Started Process A (PID: 513035)
+Cycle-limit timeout detected! Cleaning up process tree...
+error or timeout while running simulation
+usage: gen_trace.py [-h] -o OUTPUT [--offl] [-s] [-a] [-p]
+                    [--dma-trace DMA_TRACE]
+                    [--dump-hart-perf [DUMP_HART_PERF]]
+                    [--dump-dma-perf DUMP_DMA_PERF] [--print-e2e]
+                    [--mc-exec MC_EXEC] [--mc-flags MC_FLAGS]
+                    [infile.dasm]
+gen_trace.py: error: argument infile.dasm: can't open 'logs/trace_hart_00008.dasm': [Errno 2] No such file or directory: 'logs/trace_hart_00008.dasm'
+/repo/myrtle-experiments/run_and_extract_time2.sh: line 107: 513035 Killed                  $gemmDir/scripts/verify.py snitch_cluster.vlt $elf.elf "--myrtleTimeout=0" > verify-output.txt
 
 		extractDataFromJsons.py: ATTN: only many_gemms.sh should call this script.
-		max e2e dma vs cc diff time is 14: [np.int64(14), np.int64(11), np.int64(10), np.int64(9), np.int64(6), np.int64(5), np.int64(4), np.int64(3)]
-	run_and_extract_time.sh: Successfully exported timing information. Deleting logs...
--rw-r--r--. 1 root root 246M Jun 23 11:38 trace_hart_00000.dasm
--rw-r--r--. 1 root root 245M Jun 23 11:38 trace_hart_00001.dasm
--rw-r--r--. 1 root root 246M Jun 23 11:38 trace_hart_00002.dasm
--rw-r--r--. 1 root root 247M Jun 23 11:38 trace_hart_00003.dasm
--rw-r--r--. 1 root root 232M Jun 23 11:38 trace_hart_00004.dasm
--rw-r--r--. 1 root root 232M Jun 23 11:38 trace_hart_00005.dasm
--rw-r--r--. 1 root root 232M Jun 23 11:38 trace_hart_00006.dasm
--rw-r--r--. 1 root root 180M Jun 23 11:38 trace_hart_00007.dasm
--rw-r--r--. 1 root root  17M Jun 23 11:38 trace_hart_00008.dasm
+		extractKernelTimeFromJsons.py: Error: directory /repo/testrun/128x128x128w31-32-28/build/logs does not exist.
+Traceback (most recent call last):
+  File "/repo/myrtle-experiments/extractDataFromJsons2.py", line 259, in <module>
+    raise Exception("")
+Exception
+	run_and_extract_time.sh: Error exporting timing info!
+ime.sh: Error exporting timing info!

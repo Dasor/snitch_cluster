@@ -21,6 +21,7 @@
 #   --allow-boundary     enable boundary/remainder tile mode
 #   --workdir PATH       artifact directory         (default: testrun)
 #   --seed INT           random seed for reproducibility
+#   --timeout INT        wall-clock timeout per simulation in seconds (default: 2700 = 45 min, 0 = no limit)
 
 set -euo pipefail
 
@@ -29,14 +30,15 @@ M=128
 N=128
 K=128
 N_ITERS=5
-INIT_POOL=1000
-INIT_CONFIGS=50
-GA_CANDIDATES=30
-GA_POP=200
+INIT_POOL=3000
+INIT_CONFIGS=32
+GA_CANDIDATES=20
+GA_POP=500
 GA_GENS=100
-ALLOW_BOUNDARY=""
+ALLOW_BOUNDARY="--allow-boundary"
 WORKDIR="testrun"
-SEED=""
+SEED="777"
+TIMEOUT_SECS=2700
 
 # ── Parse flags ───────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
@@ -53,6 +55,7 @@ while [[ $# -gt 0 ]]; do
         --allow-boundary)  ALLOW_BOUNDARY="--allow-boundary"; shift ;;
         --workdir)         WORKDIR="$2";        shift 2 ;;
         --seed)            SEED="$2";           shift 2 ;;
+        --timeout)         TIMEOUT_SECS="$2";   shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -71,7 +74,7 @@ export experimentDir
 experimentDir="$(cd "$WORKDIR" && pwd)"
 export beta=0
 export spm_opt=0
-export TIMEOUT=0
+export TIMEOUT=$TIMEOUT_SECS
 
 # ── Helper: seed arg (empty string if no seed provided) ───────────────────────
 seed_arg() {
@@ -114,9 +117,9 @@ for ITER in $(seq 1 "$N_ITERS"); do
             $(seed_arg "$ITER") $ALLOW_BOUNDARY \
             --out "$POOL_CSV"
 
-        # Keep header + top INIT_CONFIGS data rows
-        { head -n 1 "$POOL_CSV"; tail -n +2 "$POOL_CSV" | head -n "$INIT_CONFIGS"; } \
-            > "$CONFIGS_CSV"
+        # Keep header + top INIT_CONFIGS data rows (pool is already sorted
+        # by Space Needed in L1 descending, so first N rows = largest tiles).
+        head -n $((INIT_CONFIGS + 1)) "$POOL_CSV" > "$CONFIGS_CSV"
         echo "Selected top $INIT_CONFIGS configs (by tile size) from pool of $INIT_POOL → $CONFIGS_CSV"
     else
         # Subsequent iterations: GA guided by the previous model.
@@ -130,6 +133,11 @@ dfs = [pd.read_csv(f"$WORKDIR/iter{i}_configs.csv") for i in range(1, $ITER)]
 pd.concat(dfs).drop_duplicates("FakeNN JSON Name").to_csv("$GA_SEED_CSV", index=False)
 PYEOF
 
+        BLOCKLIST_ARG=""
+        if [ -f "$WORKDIR/tested_configs.txt" ]; then
+            BLOCKLIST_ARG="--blocklist $WORKDIR/tested_configs.txt"
+        fi
+
         python testrun/train/ga.py \
             --M "$M" --N "$N" --K "$K" \
             --model "$PREV_MODEL" \
@@ -138,7 +146,7 @@ PYEOF
             --pop "$GA_POP" \
             --generations "$GA_GENS" \
             --top-n "$GA_CANDIDATES" \
-            $(seed_arg "$ITER") $ALLOW_BOUNDARY
+            $(seed_arg "$ITER") $ALLOW_BOUNDARY $BLOCKLIST_ARG
     fi
 
     # ── STEP 2a: Compile ──────────────────────────────────────────────────────
@@ -161,6 +169,17 @@ PYEOF
         echo "Error: $RESULTS_CSV not found — simulation may have failed"
         exit 1
     fi
+
+    # ── STEP 2d: Append all tested configs to the exclusion list ─────────────
+    BLOCKLIST="$WORKDIR/tested_configs.txt"
+    python3 - <<PYEOF
+import pandas as pd
+configs = pd.read_csv("$CONFIGS_CSV")["FakeNN JSON Name"]
+with open("$BLOCKLIST", "a") as f:
+    for name in configs:
+        f.write(name + "\n")
+print(f"Exclusion list: added {len(configs)} config(s) → $BLOCKLIST")
+PYEOF
 
     # ── STEP 3: Train on ALL data accumulated so far ──────────────────────────
     echo ""
@@ -210,7 +229,7 @@ files = sorted(glob.glob("$WORKDIR/iter*_configs-results.csv"))
 if not files:
     print("No results found.")
 else:
-    df = pd.concat([pd.read_csv(f) for f in files])
+    df = pd.concat([pd.read_csv(f) for f in files]).reset_index(drop=True)
     df = df[df["Global Sim E2E_dma"] > 0]
     if df.empty:
         print("No valid (non-timeout) simulation results.")
