@@ -32,3 +32,8 @@ deleteLater/
 
 #claude
 .claude
+CLAUDE.md
+myrtle/
+
+#simulations
+testrun/128*

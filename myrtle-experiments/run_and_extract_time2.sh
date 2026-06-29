@@ -27,56 +27,60 @@ elf=$(basename $gemmDir)
 
 
 
-# gemini helped me write the timeout functino for this script
+_kill_tree(){
+    local pid=$1
+    local child grandchild
+    child=$(pgrep -P $pid)
+    if [ -n "$child" ]; then
+        grandchild=$(pgrep -P $child)
+        [ -n "$grandchild" ] && kill -9 $grandchild 2>/dev/null
+        kill -9 $child 2>/dev/null
+    fi
+    kill -9 $pid 2>/dev/null
+}
+
 timeout(){
-    # 1. Start process A (verify.py) in the background
- #   python3 verify.py > output.txt 2>&1 &
-    $gemmDir/scripts/verify.py snitch_cluster.vlt $elf.elf "--myrtleTimeout=$TIMEOUT" > verify-output.txt &
-#    correct=$($gemmDir/scripts/verify.py snitch_cluster.vlt $elf.elf --myrtleTimeout=5 > verify-output.txt; echo $?)
-    
+    # Start verify.py with cycle-limit disabled (--myrtleTimeout=0);
+    # wall-clock enforcement is handled by the elapsed counter below.
+    $gemmDir/scripts/verify.py snitch_cluster.vlt $elf.elf "--myrtleTimeout=0" > verify-output.txt &
     PID_A=$!
-
     echo "Started Process A (PID: $PID_A)"
+    elapsed=0
 
-    # 2. Periodically check for the timeout string or process completion
     while true; do
-        # Check if the process is still running
+        # Process finished on its own
         if ! kill -0 $PID_A 2>/dev/null; then
-            # Process A finished on its own
             wait $PID_A
             EXIT_STATUS=$?
             break
         fi
 
-        # Check if "myrtleTimeout" appears in output.txt
-        if grep -q "Myrtle Experiment Timeout" output.txt; then
-            echo "Timeout detected! Cleaning up process tree..."
-
-            # Find Process B (Child of A)
-            PID_B=$(pgrep -P $PID_A)
-            
-            if [ -n "$PID_B" ]; then
-                # Find Process C (Child of B)
-                PID_C=$(pgrep -P $PID_B)
-                
-                # Kill in reverse order (Grandchild -> Child -> Parent)
-                [ -n "$PID_C" ] && kill -9 $PID_C 2>/dev/null
-                kill -9 $PID_B 2>/dev/null
-            fi
-
-            kill -9 $PID_A 2>/dev/null
+        # C++ cycle-limit timeout (legacy path, only fires if --myrtleTimeout > 0)
+        if grep -q "Myrtle Experiment Timeout" output.txt 2>/dev/null; then
+            echo "Cycle-limit timeout detected! Cleaning up process tree..."
+            _kill_tree $PID_A
             EXIT_STATUS=1
-            echo "simulation failed on timeout."> verify-output.txt
-            ls -l -h logs/*.dasm
-            rm -rf "logs"
-            rm -rf "dma_trace_00008_00000.log"
+            echo "simulation failed on timeout." > verify-output.txt
+            rm -rf "logs" "dma_trace_00008_00000.log"
+            break
+        fi
+
+        # Wall-clock timeout
+        if [[ ${TIMEOUT:-0} -gt 0 ]] && [[ $elapsed -ge ${TIMEOUT} ]]; then
+            echo "Wall-clock timeout after ${TIMEOUT}s! Cleaning up process tree..."
+            _kill_tree $PID_A
+            EXIT_STATUS=1
+            echo "simulation failed on timeout." > verify-output.txt
+            # Write the sentinel that combineTilingSchemeDataIntoSingleCSV.py looks for
+            echo "what():  Myrtle Experiment Timeout" >&2
+            rm -rf "logs" "dma_trace_00008_00000.log"
             break
         fi
 
         sleep 1
+        elapsed=$((elapsed + 1))
     done
 
-    # 3. Print success or error based on exit status
     if [ $EXIT_STATUS -eq 0 ]; then
         echo "ran simulation correctly"
     else
@@ -120,26 +124,24 @@ main(){
         return 1
     fi
 
-    # extract timing info
-    genTrace logs "trace_hart_00000"
-    genTrace logs "trace_hart_00001"
-    genTrace logs "trace_hart_00002"
-    genTrace logs "trace_hart_00003"
-    genTrace logs "trace_hart_00004"
-    genTrace logs "trace_hart_00005"
-    genTrace logs "trace_hart_00006"
-    genTrace logs "trace_hart_00007"
-    genTrace logs "trace_hart_00008" dma
-    python $extractKernelTime $expName $logs $M $N $K $m $n $k
+    # extract timing info: only process DMA hart, skip compute cores
+    gen_trace="$here/util/trace/gen_trace.py"
+    llvm_mc="/tools/riscv-llvm/bin/llvm-mc"
+    e2e_cycles=$(
+        $gen_trace "logs/trace_hart_00008.dasm" \
+            --mc-exec $llvm_mc --mc-flags "-disassemble -mcpu=snitch" \
+            -o /dev/null
+    )
+    rm -f logs/trace_hart_00008.dasm
+    rm -f logs/trace_hart_0000[0-7].dasm
+    python $extractKernelTime $expName $logs $M $N $K $m $n $k "$e2e_cycles"
     correct=$(echo $?)
-    if [[ "$correct" == "0" ]]; 
+    if [[ "$correct" == "0" ]];
     then
         echo -e "\trun_and_extract_time.sh: Successfully exported timing information. Deleting logs..."
-        # delete huge log files
+        # .dasm files already deleted above; clean up any other leftovers
         cd $logs
-        ls -l -h *.dasm
-        rm -rf *.dasm
-        rm -rf *.txt
+        rm -f *.dasm *.txt
         cd ..
         rm -rf "dma_trace_00008_00000.log"
     else

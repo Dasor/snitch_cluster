@@ -172,7 +172,7 @@ runAndExtract(){
     ss="$1"
     echo -e "\tmany_gemms.sh: RUN + EXPORT step"
     uniquePointRegex='^(([0-9]*)x([0-9]*)x([0-9]*))w([0-9]*)-([0-9]*)-([0-9]*)'
-    batchSize=4 #5 #$(nproc)
+    batchSize=${SIM_BATCH_SIZE:-$(nproc)}
     counter=0
     echo -e "\t\tBatch size is $batchSize"
     for ts in $(grep -oE $uniquePointRegex $ss)

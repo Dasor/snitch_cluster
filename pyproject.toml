@@ -47,6 +47,7 @@ kernels  = [
     "numpy",
     "scikit-learn",
     "torch",
+    "xgboost",
 ]
 docs = [
     "mkdocs",

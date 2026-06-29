@@ -1157,6 +1157,9 @@ def main():
         if args.dma_trace:
             dma_metrics = eval_dma_metrics(dma_trans, args.dma_trace)
 
+    if args.print_e2e:
+        print(perf_metrics[-1]['tend'] - perf_metrics[0]['tstart'] + 1)
+
     # Dump hart performance metrics to JSON file
     if args.dump_hart_perf:
         with args.dump_hart_perf as file:
