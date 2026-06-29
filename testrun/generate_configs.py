@@ -18,8 +18,6 @@ Hardware constraints enforced (default — exact-divisor mode):
   n is a multiple of 8  (SSR unroll-and-jam factor)
   K % k == 0  (k must exactly divide K — no remainder tiles)
   k >= 8 if K >= 8, else k >= 3  (HW loop prologue/epilogue minimum)
-  2 * (m*k + n*k + m*n) * 8 <= L1_BYTES  (double-buffered L1 fit)
-  max(m*k, n*k, m*n) * 8 <= BANK_BYTES   (8-bank scratchpad layout)
 
 With --allow-boundary (boundary/remainder-tile mode, requires gemm_boundary):
   m can be any value >= 8 (remainder M-tile is handled by the boundary kernel)
@@ -27,7 +25,6 @@ With --allow-boundary (boundary/remainder-tile mode, requires gemm_boundary):
     multiple of 8  (SSR width constraint on the boundary tile)
   k can be any value >= 8; if K % k != 0 the K-remainder must be >= 3
     (HW loop prologue/epilogue minimum on the boundary tile)
-  L1 and 8-bank constraints applied to the main tile as before
   remainderTiles tag is set to e.g. "M0K" to indicate which dims have a
     boundary tile (used by prepareParams.py with gemm_boundary gemmDir)
 """
@@ -46,8 +43,7 @@ from tile_static_analysis.TSA_C_Remainder import TSA_C_Remainder
 from tile_static_analysis.remainder_utils import TilingScheme
 
 # Hardware parameters (matches TSG_C_Remainder defaults)
-L1_BYTES = 100_000          # usable heap in TCDM scratchpad
-BANK_BYTES = 8 * 1_024      # 8 TCDM banks × 1 KB each
+L1_BYTES = 100_000          # usable heap in TCDM scratchpad (used for feature columns)
 BYTES_PER_ELEM = 8          # FP64
 MAX_ATTEMPTS = 100_000      # give up if we can't find enough valid configs
 
@@ -76,18 +72,8 @@ def _valid_k_values(K: int, boundary: bool) -> list[int]:
     return [k for k in range(min_k, K + 1) if K % k == 0]
 
 
-def _fits_l1(m: int, n: int, k: int) -> bool:
-    total_elems = 2 * (m * k + n * k + m * n)  # double-buffered
-    return total_elems * BYTES_PER_ELEM <= L1_BYTES
-
-
-def _fits_8_banks(m: int, n: int, k: int) -> bool:
-    largest_tile = max(m * k, n * k, m * n)
-    return largest_tile * BYTES_PER_ELEM <= BANK_BYTES
-
-
 def _is_valid(m: int, n: int, k: int) -> bool:
-    return _fits_l1(m, n, k) and _fits_8_banks(m, n, k)
+    return True
 
 
 def _remainder_tag(M: int, N: int, K: int, m: int, n: int, k: int) -> str:

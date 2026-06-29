@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-Constraint-aware repair for tile-size GA individuals.
+Repair for tile-size GA individuals.
 
-Given a (possibly invalid) (m, n, k) triple, repair() snaps each dimension to
-the nearest valid value and then iteratively scales down until the L1 and
-8-bank memory constraints are satisfied.
+Given an (m, n, k) triple, repair() snaps each dimension to the nearest valid
+value (divisibility, SSR alignment, HW loop minimum).
 
-All constraint definitions are imported from generate_configs.py so this file
-stays in sync automatically when hardware parameters change.
+Constraint definitions are imported from generate_configs.py.
 """
 
 import os
@@ -20,9 +18,6 @@ from generate_configs import (
     _valid_k_values,
     _valid_m_values,
     _valid_n_values,
-    _is_valid,
-    BANK_BYTES,
-    BYTES_PER_ELEM,
 )
 
 
@@ -43,9 +38,7 @@ def repair(
     Return the nearest valid (m, n, k) to the given triple, or None if
     no valid configuration exists for the given (M, N, K).
 
-    'Nearest' means: snap each dimension independently to its closest valid
-    value, then iteratively reduce the most-offending dimension until both
-    the 8-bank and L1 constraints are met.
+    Snaps each dimension independently to its closest valid value.
     """
     vm = sorted(_valid_m_values(M, boundary))
     vn = sorted(_valid_n_values(N, boundary))
@@ -54,66 +47,7 @@ def repair(
     if not vm or not vn or not vk:
         return None
 
-    m = _snap(m, vm)
-    n = _snap(n, vn)
-    k = _snap(k, vk)
-
-    for _ in range(300):
-        if _is_valid(m, n, k):
-            return m, n, k
-
-        if max(m * k, n * k, m * n) * BYTES_PER_ELEM > BANK_BYTES:
-            # Reduce the dimension pair with the largest tile product.
-            if m * k >= n * k and m * k >= m * n:
-                smaller = [x for x in vm if x < m]
-                if smaller:
-                    m = smaller[-1]
-                    continue
-                smaller = [x for x in vk if x < k]
-                if smaller:
-                    k = smaller[-1]
-                    continue
-            elif n * k >= m * n:
-                smaller = [x for x in vn if x < n]
-                if smaller:
-                    n = smaller[-1]
-                    continue
-                smaller = [x for x in vk if x < k]
-                if smaller:
-                    k = smaller[-1]
-                    continue
-            else:
-                smaller = [x for x in vm if x < m]
-                if smaller:
-                    m = smaller[-1]
-                    continue
-                smaller = [x for x in vn if x < n]
-                if smaller:
-                    n = smaller[-1]
-                    continue
-        else:
-            # L1 constraint: reduce by highest marginal contribution.
-            # d(2*(m*k + n*k + m*n)) / dm = 2*(k + n), etc.
-            grad_m = k + n
-            grad_n = k + m
-            grad_k = m + n
-            if grad_m >= grad_n and grad_m >= grad_k:
-                smaller = [x for x in vm if x < m]
-                if smaller:
-                    m = smaller[-1]
-                    continue
-            if grad_n >= grad_k:
-                smaller = [x for x in vn if x < n]
-                if smaller:
-                    n = smaller[-1]
-                    continue
-            smaller = [x for x in vk if x < k]
-            if smaller:
-                k = smaller[-1]
-                continue
-        break
-
-    return (m, n, k) if _is_valid(m, n, k) else None
+    return _snap(m, vm), _snap(n, vn), _snap(k, vk)
 
 
 if __name__ == "__main__":
