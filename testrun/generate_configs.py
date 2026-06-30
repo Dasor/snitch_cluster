@@ -18,6 +18,7 @@ Hardware constraints enforced (default — exact-divisor mode):
   n is a multiple of 8  (SSR unroll-and-jam factor)
   K % k == 0  (k must exactly divide K — no remainder tiles)
   k >= 8 if K >= 8, else k >= 3  (HW loop prologue/epilogue minimum)
+  (m*k + n*k + m*n) * 8 < TCDM_BYTES  (single-buffer TCDM fit, matches datagen.py)
 
 With --allow-boundary (boundary/remainder-tile mode, requires gemm_boundary):
   m can be any value >= 8 (remainder M-tile is handled by the boundary kernel)
@@ -43,7 +44,8 @@ from tile_static_analysis.TSA_C_Remainder import TSA_C_Remainder
 from tile_static_analysis.remainder_utils import TilingScheme
 
 # Hardware parameters (matches TSG_C_Remainder defaults)
-L1_BYTES = 100_000          # usable heap in TCDM scratchpad (used for feature columns)
+L1_BYTES = 100_000          # kept for feature columns only (Space Needed in L1 / Space Remaining)
+TCDM_BYTES = 112 * 1024     # matches data_utils.TCDM_HEAP_SIZE — hard hardware limit
 BYTES_PER_ELEM = 8          # FP64
 MAX_ATTEMPTS = 100_000      # give up if we can't find enough valid configs
 
@@ -73,7 +75,7 @@ def _valid_k_values(K: int, boundary: bool) -> list[int]:
 
 
 def _is_valid(m: int, n: int, k: int) -> bool:
-    return True
+    return (m * k + n * k + m * n) * BYTES_PER_ELEM < TCDM_BYTES
 
 
 def _remainder_tag(M: int, N: int, K: int, m: int, n: int, k: int) -> str:

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Repair for tile-size GA individuals.
+Constraint-aware repair for tile-size GA individuals.
 
 Given an (m, n, k) triple, repair() snaps each dimension to the nearest valid
-value (divisibility, SSR alignment, HW loop minimum).
+value (divisibility, SSR alignment, HW loop minimum), then iteratively scales
+down until the single-buffer TCDM footprint constraint is satisfied.
 
 Constraint definitions are imported from generate_configs.py.
 """
@@ -18,6 +19,7 @@ from generate_configs import (
     _valid_k_values,
     _valid_m_values,
     _valid_n_values,
+    _is_valid,
 )
 
 
@@ -47,7 +49,34 @@ def repair(
     if not vm or not vn or not vk:
         return None
 
-    return _snap(m, vm), _snap(n, vn), _snap(k, vk)
+    m = _snap(m, vm)
+    n = _snap(n, vn)
+    k = _snap(k, vk)
+
+    for _ in range(300):
+        if _is_valid(m, n, k):
+            return m, n, k
+        # TCDM constraint: reduce dimension with highest marginal contribution to (m*k + n*k + m*n)
+        grad_m = k + n
+        grad_n = k + m
+        grad_k = m + n
+        if grad_m >= grad_n and grad_m >= grad_k:
+            smaller = [x for x in vm if x < m]
+            if smaller:
+                m = smaller[-1]
+                continue
+        if grad_n >= grad_k:
+            smaller = [x for x in vn if x < n]
+            if smaller:
+                n = smaller[-1]
+                continue
+        smaller = [x for x in vk if x < k]
+        if smaller:
+            k = smaller[-1]
+            continue
+        break
+
+    return (m, n, k) if _is_valid(m, n, k) else None
 
 
 if __name__ == "__main__":
