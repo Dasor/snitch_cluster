@@ -33,6 +33,9 @@ SN_VLT_FLAGS += -Wno-UNOPTFLAT
 SN_VLT_FLAGS += -Wno-fatal
 SN_VLT_FLAGS += --unroll-count 1024
 SN_VLT_FLAGS += --threads $(SN_VLT_NUM_THREADS)
+ifdef TRACE_DMA_ONLY
+SN_VLT_FLAGS += +define+TRACE_DMA_ONLY
+endif
 
 # Misc
 SN_VLT_TOP_MODULE = testharness

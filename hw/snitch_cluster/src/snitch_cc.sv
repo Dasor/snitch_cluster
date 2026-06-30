@@ -859,6 +859,13 @@ module snitch_cc #(
   // Tracer
   // --------------------------
   // pragma translate_off
+  if (
+`ifdef TRACE_DMA_ONLY
+    Xdma
+`else
+    1'b1
+`endif
+  ) begin : gen_tracer
   int f;
   string fn;
   logic [63:0] cycle;
@@ -977,6 +984,7 @@ module snitch_cc #(
     $fclose(f);
   end
   // verilog_lint: waive-stop always-ff-non-blocking
+  end : gen_tracer
   // pragma translate_on
 
   `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
