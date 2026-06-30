@@ -119,10 +119,10 @@ def regionCount(M, N, K, m, n, k, idx):
 
 
 def main():
-    if len(sys.argv) not in (9, 10):
+    if len(sys.argv) != 9:
         print("\t", end="")
         print(
-            f"USAGE: Requires two string arguments, experiment name and the full path to the experiment's logs folder, followed by M N K m n k [e2e_cycles].\nYou passed in {len(sys.argv)} args"
+            f"USAGE: Requires two string arguments, experiment name and the full path to the experiment's logs folder, followed by M N K m n k.\nYou passed in {len(sys.argv)} args"
         )
     else:
         expName = sys.argv[1]
@@ -140,20 +140,6 @@ def main():
         n = int(sys.argv[7])
         k = int(sys.argv[8])
 
-        # Fast path: when e2e_cycles is pre-computed by the caller, skip all JSON reads.
-        # All columns not derivable from tile params are set to -1 as sentinels.
-        if len(sys.argv) == 10:
-            e2e_cycles = int(sys.argv[9])
-            sentinel_cols = [
-                'Global Sim E2E_cc_0', 'Core Complex E2E_cc_0', 'Sum Region Cycles_cc_0', 'Before Computation_cc_0', 'After Computation_cc_0', 'core0', 'SSR Config Time_cc_0', 'Overlap Stall Time_cc_0', 'Raw Compute Time_cc_0', 'Sum Raw Compute + Overlap Stall_cc_0', 'Sum Compute+Stall+Pro+Epi_cc_0', 'Sum Compute + SSR Configs_cc_0', 'cc_tiles_cc_0', 'Global Sim E2E_cc_1', 'Core Complex E2E_cc_1', 'Sum Region Cycles_cc_1', 'Before Computation_cc_1', 'After Computation_cc_1', 'core1', 'SSR Config Time_cc_1', 'Overlap Stall Time_cc_1', 'Raw Compute Time_cc_1', 'Sum Raw Compute + Overlap Stall_cc_1', 'Sum Compute+Stall+Pro+Epi_cc_1', 'Sum Compute + SSR Configs_cc_1', 'cc_tiles_cc_1', 'Global Sim E2E_cc_2', 'Core Complex E2E_cc_2', 'Sum Region Cycles_cc_2', 'Before Computation_cc_2', 'After Computation_cc_2', 'core2', 'SSR Config Time_cc_2', 'Overlap Stall Time_cc_2', 'Raw Compute Time_cc_2', 'Sum Raw Compute + Overlap Stall_cc_2', 'Sum Compute+Stall+Pro+Epi_cc_2', 'Sum Compute + SSR Configs_cc_2', 'cc_tiles_cc_2', 'Global Sim E2E_cc_3', 'Core Complex E2E_cc_3', 'Sum Region Cycles_cc_3', 'Before Computation_cc_3', 'After Computation_cc_3', 'core3', 'SSR Config Time_cc_3', 'Overlap Stall Time_cc_3', 'Raw Compute Time_cc_3', 'Sum Raw Compute + Overlap Stall_cc_3', 'Sum Compute+Stall+Pro+Epi_cc_3', 'Sum Compute + SSR Configs_cc_3', 'cc_tiles_cc_3', 'Global Sim E2E_cc_4', 'Core Complex E2E_cc_4', 'Sum Region Cycles_cc_4', 'Before Computation_cc_4', 'After Computation_cc_4', 'core4', 'SSR Config Time_cc_4', 'Overlap Stall Time_cc_4', 'Raw Compute Time_cc_4', 'Sum Raw Compute + Overlap Stall_cc_4', 'Sum Compute+Stall+Pro+Epi_cc_4', 'Sum Compute + SSR Configs_cc_4', 'cc_tiles_cc_4', 'Global Sim E2E_cc_5', 'Core Complex E2E_cc_5', 'Sum Region Cycles_cc_5', 'Before Computation_cc_5', 'After Computation_cc_5', 'core5', 'SSR Config Time_cc_5', 'Overlap Stall Time_cc_5', 'Raw Compute Time_cc_5', 'Sum Raw Compute + Overlap Stall_cc_5', 'Sum Compute+Stall+Pro+Epi_cc_5', 'Sum Compute + SSR Configs_cc_5', 'cc_tiles_cc_5', 'Global Sim E2E_cc_6', 'Core Complex E2E_cc_6', 'Sum Region Cycles_cc_6', 'Before Computation_cc_6', 'After Computation_cc_6', 'core6', 'SSR Config Time_cc_6', 'Overlap Stall Time_cc_6', 'Raw Compute Time_cc_6', 'Sum Raw Compute + Overlap Stall_cc_6', 'Sum Compute+Stall+Pro+Epi_cc_6', 'Sum Compute + SSR Configs_cc_6', 'cc_tiles_cc_6', 'Global Sim E2E_cc_7', 'Core Complex E2E_cc_7', 'Sum Region Cycles_cc_7', 'Before Computation_cc_7', 'After Computation_cc_7', 'core7', 'SSR Config Time_cc_7', 'Overlap Stall Time_cc_7', 'Raw Compute Time_cc_7', 'Sum Raw Compute + Overlap Stall_cc_7', 'Sum Compute+Stall+Pro+Epi_cc_7', 'Sum Compute + SSR Configs_cc_7', 'cc_tiles_cc_7', 'Kernel Time', 'dma', 'dma cycle_q', 'Total CC Tiles', 'Overlap Stall Time Total', 'Raw Compute Time Total', 'SSR Config Time Total', 'Sum Compute + SSR Configs Total', 'Diff from dma E2E_cc_0', 'Sum Regions - Core Complex E2E_cc_0', 'Diff from dma E2E_cc_1', 'Sum Regions - Core Complex E2E_cc_1', 'Diff from dma E2E_cc_2', 'Sum Regions - Core Complex E2E_cc_2', 'Diff from dma E2E_cc_3', 'Sum Regions - Core Complex E2E_cc_3', 'Diff from dma E2E_cc_4', 'Sum Regions - Core Complex E2E_cc_4', 'Diff from dma E2E_cc_5', 'Sum Regions - Core Complex E2E_cc_5', 'Diff from dma E2E_cc_6', 'Sum Regions - Core Complex E2E_cc_6', 'Diff from dma E2E_cc_7', 'Sum Regions - Core Complex E2E_cc_7',
-            ]
-            row = {col: -1 for col in sentinel_cols}
-            row['Global Sim E2E_dma'] = e2e_cycles
-            row['FakeNN JSON Name'] = expName
-            df = pd.DataFrame([row])
-            df.to_csv(f"{logs}/{expName}.csv", index=False)
-            return 0
-
         # trace file names are hardcoded
         dmaFileName = f"{logs}/hart-trace_hart_00008-perf.json"
         computeCoreFileNames = [
@@ -167,10 +153,14 @@ def main():
             f"{logs}/hart-trace_hart_00007-perf.json",
         ]
         computeCores = []
+        missing_compute_jsons = False
 
-        # region count reality check
+        # region count reality check — skip cores whose JSON wasn't generated (TRACE_DMA_ONLY mode)
         for idx in range(0, len(computeCoreFileNames)):
             f = computeCoreFileNames[idx]
+            if not os.path.exists(f):
+                missing_compute_jsons = True
+                continue
             rgc = regionCount(M, N, K, m, n, k, idx)
             with open(f) as json_file:
                 data = json.load(json_file)
@@ -182,19 +172,37 @@ def main():
                     computeCores.append((f, rgc, idx))
         tracesInfo = {}
 
-        # extract info from compute core traces
+        # extract info from compute core traces; fall back to analytics when JSON is absent
         coreComplexStarts = []
         coreComplexEnds = []
-        for c, rgc, idx in computeCores:
-            with open(c) as json_file:
-                data = json.load(json_file)
-                cc_trace_info = parseComputeCoreTrace(data, rgc, idx)
-                tracesInfo.update(cc_trace_info)
-                coreComplexStarts.append(data[1]["start"])
-                coreComplexEnds.append(data[rgc - 2]["end"])
-        maxEnd = max(coreComplexEnds)
-        minStart = min(coreComplexStarts)
-        tracesInfo["Kernel Time"] = maxEnd - minStart + 1
+        for idx in range(0, len(computeCoreFileNames)):
+            f = computeCoreFileNames[idx]
+            if not os.path.exists(f):
+                # compute cc_tiles analytically; timing values unavailable
+                rgc = regionCount(M, N, K, m, n, k, idx)
+                cc_tiles = (rgc - 1) / 3
+                tracesInfo[f"cc_tiles_cc_{idx}"] = cc_tiles
+                for col in [
+                    f"Global Sim E2E_cc_{idx}", f"Core Complex E2E_cc_{idx}",
+                    f"Sum Region Cycles_cc_{idx}", f"Before Computation_cc_{idx}",
+                    f"After Computation_cc_{idx}", f"core{idx}",
+                    f"SSR Config Time_cc_{idx}", f"Overlap Stall Time_cc_{idx}",
+                    f"Raw Compute Time_cc_{idx}", f"Sum Raw Compute + Overlap Stall_cc_{idx}",
+                    f"Sum Compute+Stall+Pro+Epi_cc_{idx}", f"Sum Compute + SSR Configs_cc_{idx}",
+                ]:
+                    tracesInfo[col] = -1
+            else:
+                rgc = regionCount(M, N, K, m, n, k, idx)
+                with open(f) as json_file:
+                    data = json.load(json_file)
+                    cc_trace_info = parseComputeCoreTrace(data, rgc, idx)
+                    tracesInfo.update(cc_trace_info)
+                    coreComplexStarts.append(data[1]["start"])
+                    coreComplexEnds.append(data[rgc - 2]["end"])
+        if coreComplexStarts:
+            tracesInfo["Kernel Time"] = max(coreComplexEnds) - min(coreComplexStarts) + 1
+        else:
+            tracesInfo["Kernel Time"] = -1
 
         # extract info from dma core trace
         with open(dmaFileName) as json_file:
@@ -239,15 +247,19 @@ def main():
         df["Sum Compute + SSR Configs Total"] = sumOverComputeCores(df,"Sum Compute + SSR Configs")
         df["FakeNN JSON Name"] = expName
         for i in range(0, 8):
-            df[f"Diff from dma E2E_cc_{i}"] = abs(
-                df["Global Sim E2E_dma"] - df[f"Core Complex E2E_cc_{i}"]
-            )
-            df[f"Sum Regions - Core Complex E2E_cc_{i}"] = abs(
-                df["Global Sim E2E_dma"] - df[f"Core Complex E2E_cc_{i}"]
-            )
+            if missing_compute_jsons:
+                df[f"Diff from dma E2E_cc_{i}"] = -1
+                df[f"Sum Regions - Core Complex E2E_cc_{i}"] = -1
+            else:
+                df[f"Diff from dma E2E_cc_{i}"] = abs(
+                    df["Global Sim E2E_dma"] - df[f"Core Complex E2E_cc_{i}"]
+                )
+                df[f"Sum Regions - Core Complex E2E_cc_{i}"] = abs(
+                    df["Global Sim E2E_dma"] - df[f"Core Complex E2E_cc_{i}"]
+                )
 
-        # check for glaring errors
-        if not checkCorrectness(df):
+        # check for glaring errors (skip when compute core traces were not available)
+        if not missing_compute_jsons and not checkCorrectness(df):
             return 1
         # export results to csv
         df.to_csv(f"{logs}/{expName}.csv", index=False)

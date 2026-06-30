@@ -127,14 +127,13 @@ main(){
     # extract timing info: only process DMA hart, skip compute cores
     gen_trace="$here/util/trace/gen_trace.py"
     llvm_mc="/tools/riscv-llvm/bin/llvm-mc"
-    e2e_cycles=$(
-        $gen_trace "logs/trace_hart_00008.dasm" \
-            --mc-exec $llvm_mc --mc-flags "-disassemble -mcpu=snitch" \
-            -o /dev/null
-    )
+    $gen_trace "logs/trace_hart_00008.dasm" \
+        --mc-exec $llvm_mc --mc-flags "-disassemble -mcpu=snitch" \
+        --dump-hart-perf "$logs/hart-trace_hart_00008-perf.json" \
+        -o /dev/null
     rm -f logs/trace_hart_00008.dasm
     rm -f logs/trace_hart_0000[0-7].dasm
-    python $extractKernelTime $expName $logs $M $N $K $m $n $k "$e2e_cycles"
+    python $extractKernelTime $expName $logs $M $N $K $m $n $k
     correct=$(echo $?)
     if [[ "$correct" == "0" ]];
     then

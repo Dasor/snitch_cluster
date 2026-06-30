@@ -1076,6 +1076,11 @@ def main():
         help='Dump DMA performance metrics as json text.'
     )
     parser.add_argument(
+        '--print-e2e',
+        action='store_true',
+        help='Print end-to-end cycle count (tend - tstart + 1) to stdout.'
+    )
+    parser.add_argument(
         '--mc-exec',
         default='llvm-mc',
         help='Path to the llvm-mc executable'
