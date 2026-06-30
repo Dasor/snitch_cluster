@@ -37,3 +37,5 @@ myrtle/
 
 #simulations
 testrun/128*
+testrun/16*
+testrun/run*
