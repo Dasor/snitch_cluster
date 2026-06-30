@@ -1,1 +1,0 @@
-{"setup_ssr": 1, "parallelize_m": 1, "parallelize_k": 0, "m_tiles": 4, "n_tiles": 4, "k_tiles": 5, "load_a": 1, "load_b": 1, "load_c": 1, "double_buffer": 1, "partition_banks": 0, "transa": false, "transb": false, "m": 128, "n": 128, "k": 150, "alpha": 1, "beta": 0, "gemm_fp": "gemm_fp64_opt_myrtle", "m_unpadded": 128, "n_unpadded": 128, "k_unpadded": 128}

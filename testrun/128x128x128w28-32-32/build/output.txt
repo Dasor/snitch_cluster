@@ -1,6 +1,0 @@
-	run_and_extract_time.sh: Arguments passed in are /repo/testrun/128x128x128w28-32-32/build /repo/myrtle-experiments/extractDataFromJsons2.py 128x128x128w28-32-32 /repo/testrun/128x128x128w28-32-32/build/logs 128 128 128 28 32 32
-Started Process A (PID: 513423)
-ran simulation correctly
-
-		extractDataFromJsons.py: ATTN: only many_gemms.sh should call this script.
-	run_and_extract_time.sh: Successfully exported timing information. Deleting logs...

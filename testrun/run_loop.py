@@ -131,7 +131,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--allow-boundary", action="store_true", default=True,
                    help="Enable boundary/remainder tile mode")
     p.add_argument("--workdir", default="testrun", help="Artifact directory")
-    p.add_argument("--seed", type=int, default=777, help="Random seed for reproducibility")
+    p.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     p.add_argument("--timeout", type=int, default=2700, dest="timeout_secs",
                    help="Wall-clock timeout per simulation in seconds (0 = no limit)")
     p.add_argument("--resume-from", type=int, default=1, dest="resume_from",
