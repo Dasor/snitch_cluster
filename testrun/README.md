@@ -74,6 +74,5 @@ Currently there is a set of things that are worth exploring to see if the provid
 
 * Check the parameters of the Gradient Boost Decision Tree and GA as they were chosen without too much thinking
 * Instead of using a random configs for the first iteration start with already good tile sizes that come from the other cost model
-* Find how to make verilog generate less logs files (low priority, would make it possible to run up to 1 simulation per core in the machine).
 * Use more/other features
 
