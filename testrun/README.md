@@ -53,9 +53,7 @@ To avoid testing the a configuration more than once while the loop runs a file n
 
 ### How many simulations to run (batch size)
 
-The main bottleneck to look when choosing what `batch_size` to use in the simulator is the disk space as each simulation creates really big log files while running (they are deleted inmediately after finishing). In theory since each simulation only uses a single core the best option would be to set `batch_size` to the number of cores the machine has but if that number is too high you main run out of disk space.
-
-Thus this is also a parameters that is hard to choose and also depends on the GEMM sizes (as logs will be bigger) and on the machine core count. I found that 32 is a good number for 128x128x128 when 500GB of space are free in a machine with 64 cores.
+If using `TRACE_DMA_ONLY` the log sizes should not be a major problem, still you may need ~100GB of free space (depending on how many experiments you will run) but is much less than without `TRACE_DMA_ONLY`. So the best option for batch_size is to set it to the number of cores as one simulation will only take one core.
 
 ### Features used
 
@@ -63,15 +61,13 @@ The features we use to train the gradient boost decision tree are the same featu
 
 ### Number of iterations / Tile size found
 
-The number of iterations is a parameter controlled with `--iterations`. For this example I found that 5 iterations or so is enough and adding more iterations will not find any better suit or if it does it will not be a big leap. 
-
-Also the tile size found is not the optimal, yet it is close to it (around a 3% difference) but it seems more iterations will not help inf getting closer to the optimal.
-
+The number of iterations is a parameter controlled with `--iterations`. Depending on the GEMM size you may need more or less iterations between 10 and 15 is usually a good number.
 
 ### Possible Improvements
 
 Currently there is a set of things that are worth exploring to see if the provide any kind of improvement.
 
+* **Use gvsoc instead of verilator for a very fast search** 
 * Check the parameters of the Gradient Boost Decision Tree and GA as they were chosen without too much thinking
 * Instead of using a random configs for the first iteration start with already good tile sizes that come from the other cost model
 * Use more/other features
